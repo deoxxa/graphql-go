@@ -36,29 +36,26 @@ func getVariableValues(schema Schema, definitionASTs []*ast.VariableDefinition, 
 // Prepares an object map of argument values given a list of argument
 // definitions and list of argument AST nodes.
 func getArgumentValues(argDefs []*Argument, argASTs []*ast.Argument, variableVariables map[string]interface{}) (map[string]interface{}, error) {
-
 	argASTMap := map[string]*ast.Argument{}
 	for _, argAST := range argASTs {
 		if argAST.Name != nil {
 			argASTMap[argAST.Name.Value] = argAST
 		}
 	}
+
 	results := map[string]interface{}{}
 	for _, argDef := range argDefs {
-
 		name := argDef.PrivateName
-		var valueAST ast.Value
+
 		if argAST, ok := argASTMap[name]; ok {
-			valueAST = argAST.Value
-		}
-		value := valueFromAST(valueAST, argDef.Type, variableVariables)
-		if isNullish(value) {
-			value = argDef.DefaultValue
-		}
-		if !isNullish(value) {
-			results[name] = value
+			results[name] = valueFromAST(argAST.Value, argDef.Type, variableVariables)
+		} else {
+			if !isNullish(argDef.DefaultValue) {
+				results[name] = argDef.DefaultValue
+			}
 		}
 	}
+
 	return results, nil
 }
 
